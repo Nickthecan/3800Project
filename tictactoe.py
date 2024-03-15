@@ -1,71 +1,76 @@
-board = [['', '', ''],['', '', ''],['', '', '']]
-
 def start_game():
-    while not(check_if_full()):
-        print_board()
-        player_move('X')
-        if check_winner('X'):
-            print_board()
-            declare_winner('X')
+    board = [['', '', ''],['', '', ''],['', '', '']]
+
+    while True:
+        print_board(board)
+        current_player = 'X'
+        player_move(current_player, board)
+
+        winner_found, winning_symbol = check_winner(board)
+        if winner_found:
+            print_board(board)
+            declare_winner(winning_symbol)
             break
-        print_board()
-        player_move('O')
-        if check_winner('O'):
-            print_board()
-            declare_winner('O')
+        elif check_if_full(board):
+            print_board(board)
+            print("It is a tie")
+            break
+        else:
+            print_board(board)
+            current_player = 'O'
+            player_move(current_player, board)
+
+        winner_found, winning_symbol = check_winner(board)
+        if winner_found:
+            print_board(board)
+            declare_winner(winning_symbol)
             break
 
-def print_board():
+def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
     print("------------------")
     print("  {}  |  {}  |  {}  ".format(board[1][0], board[1][1], board[1][2]))
     print("------------------")
     print("  {}  |  {}  |  {}  ".format(board[2][0], board[2][1], board[2][2]))
 
-def check_winner(choice):
-    for i in range(3):
-        if board[0][i] == choice and board[1][i] == choice and board[2][i] == choice:
-            return True
-    for i in range(3):
-        if board[i][0] == choice and  board[i][1] == choice and board[i][2] == choice:
-            return True
-    if board[0][0] == choice and  board[1][1] == choice and board[2][2] == choice:
-        return True
-    if board[2][0] == choice and board[1][1] == choice and board[0][2] == choice:
-        return True
-    return False
-
-def declare_winner(choice):
-    print("{} wins the game".format(choice))
-    return True;
-
-def check_if_full():
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == '':
-                return False
-    print("It is a tie")
-    return True
-
-def player_move(choice):
-    row = int(input("Please select Row: "))
-    column = int(input("Please select Column: "))
-
-    if is_valid(row, column):
-        board[row][column] = choice
-    else:
-        print("Invalid Answer. Try Again")
-        player_move(choice)
-
-def is_valid(row, column):
+def is_valid(row, column, board):
     if (row < 0 or row > 2) or (column < 0 or column > 2):
         return False
     
     if board[row][column] == '':
         return True
-    return False    
+    return False
 
-def main():
-    start_game()
+def check_if_full(board):
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == '':
+                return False
+    return True
 
-main()
+def check_winner(board):
+    for i in range(3):
+        if board[i][0] == board[i][1] == board[i][2] and board[i][0] != '':
+            return True, board[i][0]
+        if board[0][i] == board[1][i] == board[2][i] and board[0][i] != '':
+            return True, board[0][i]
+    if (board[0][0] == board[1][1] == board[2][2]) and board[0][0] != '':
+        return True, board[0][0]
+    if (board[2][0] == board[1][1] == board[0][2]) and board[2][0] != '':
+        return True, board[2][0]
+    return False, None
+
+def declare_winner(current_player):
+    print("{} wins the game".format(current_player))
+
+def player_move(current_player, board):
+    row = int(input("Please select Row: "))
+    column = int(input("Please select Column: "))
+
+    if is_valid(row, column, board):
+        board[row][column] = current_player
+    else:
+        print("Invalid Answer. Try Again")
+        player_move(current_player, board)
+
+start_game()
