@@ -75,20 +75,18 @@ def player_move(current_player, board):
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
 
-def socket_bind_server():
+def socket_connect_client():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("socket created successfully")
     except socket.error as error:
         print("socket creation failed, {}".format(error))
 
-    s.bind((socket.gethostname(), 8080))
-    s.listen(5)
-    
-    while True:
-        clientsocket, address = s.accept()
-        print("connection from {} has been established".format(address))
-        clientsocket.send(bytes("Welcome to Server", "utf-8"))
+    s.connect((socket.gethostname(), 8080))
 
-socket_bind_server()
+    message = s.recv(1024)
+    print(message.decode("utf-8"))
+
+
+socket_connect_client()
 start_game()
