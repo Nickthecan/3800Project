@@ -77,16 +77,26 @@ def player_move(current_player, board):
 
 def socket_connect_client():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("socket created successfully")
     except socket.error as error:
         print("socket creation failed, {}".format(error))
 
-    s.connect((socket.gethostname(), 8080))
+    clientsocket.connect((socket.gethostname(), 8080))
 
-    message = s.recv(1024)
+    message = clientsocket.recv(1024)
     print(message.decode("utf-8"))
 
+    while True:
+        message = input("Enter Row Number and Column Number: ")
+
+        if message == "close":
+            clientsocket.sendall(message.encode())
+            break
+
+        clientsocket.sendall(message.encode())
+    
+    clientsocket.close()
 
 socket_connect_client()
-start_game()
+""" start_game() """

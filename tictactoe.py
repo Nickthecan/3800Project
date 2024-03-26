@@ -77,18 +77,27 @@ def player_move(current_player, board):
 
 def socket_bind_server():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("socket created successfully")
     except socket.error as error:
         print("socket creation failed, {}".format(error))
 
-    s.bind((socket.gethostname(), 8080))
-    s.listen(5)
+    serversocket.bind((socket.gethostname(), 8080))
+    serversocket.listen(5)
     
+    clientsocket, address = serversocket.accept()
+    print("connection from {} has been established".format(address))
+    clientsocket.send(bytes("Welcome to the Server", "utf-8"))
+
     while True:
-        clientsocket, address = s.accept()
-        print("connection from {} has been established".format(address))
-        clientsocket.send(bytes("Welcome to Server", "utf-8"))
+        data = clientsocket.recv(1024)
+        if data.decode() == "close":
+            break
+        print("Received from client: {}".format(data.decode()))
+        clientsocket.sendall(data)
+
+    clientsocket.close()
+    serversocket.close()
 
 socket_bind_server()
-start_game()
+""" start_game() """
