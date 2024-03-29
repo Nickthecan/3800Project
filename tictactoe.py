@@ -1,76 +1,71 @@
-def start_game():
-    board = [['', '', ''],['', '', ''],['', '', '']]
+game_board = [['', '', ''], ['', '', ''], ['', '', '']]
 
-    while True:
-        print_board(board)
-        current_player = 'X'
-        player_move(current_player, board)
-
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
+def play_game():
+    while not board_full():
+        show_board()
+        make_move('X')
+        if check_win('X'):
+            show_board()
+            announce_winner('X')
             break
-        elif check_if_full(board):
-            print_board(board)
-            print("It is a tie")
-            break
-        else:
-            print_board(board)
-            current_player = 'O'
-            player_move(current_player, board)
-
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
+        show_board()
+        make_move('O')
+        if check_win('O'):
+            show_board()
+            announce_winner('O')
             break
 
-def print_board(board):
-    print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
+def show_board():
+    print("  {}  |  {}  |  {}  ".format(game_board[0][0], game_board[0][1], game_board[0][2]))
     print("------------------")
-    print("  {}  |  {}  |  {}  ".format(board[1][0], board[1][1], board[1][2]))
+    print("  {}  |  {}  |  {}  ".format(game_board[1][0], game_board[1][1], game_board[1][2]))
     print("------------------")
-    print("  {}  |  {}  |  {}  ".format(board[2][0], board[2][1], board[2][2]))
+    print("  {}  |  {}  |  {}  ".format(game_board[2][0], game_board[2][1], game_board[2][2]))
 
-def is_valid(row, column, board):
-    if (row < 0 or row > 2) or (column < 0 or column > 2):
-        return False
-    
-    if board[row][column] == '':
+def check_win(symbol):
+    for i in range(3):
+        if game_board[0][i] == symbol and game_board[1][i] == symbol and game_board[2][i] == symbol:
+            return True
+    for i in range(3):
+        if game_board[i][0] == symbol and  game_board[i][1] == symbol and game_board[i][2] == symbol:
+            return True
+    if game_board[0][0] == symbol and  game_board[1][1] == symbol and game_board[2][2] == symbol:
+        return True
+    if game_board[2][0] == symbol and game_board[1][1] == symbol and game_board[0][2] == symbol:
         return True
     return False
 
-def check_if_full(board):
-    for i in range(3):
-        for j in range(3):
-            if board[i][j] == '':
-                return False
+def announce_winner(symbol):
+    print("{} emerges victorious!".format(symbol))
     return True
 
-def check_winner(board):
+def board_full():
     for i in range(3):
-        if board[i][0] == board[i][1] == board[i][2] and board[i][0] != '':
-            return True, board[i][0]
-        if board[0][i] == board[1][i] == board[2][i] and board[0][i] != '':
-            return True, board[0][i]
-    if (board[0][0] == board[1][1] == board[2][2]) and board[0][0] != '':
-        return True, board[0][0]
-    if (board[2][0] == board[1][1] == board[0][2]) and board[2][0] != '':
-        return True, board[2][0]
-    return False, None
+        for j in range(3):
+            if game_board[i][j] == '':
+                return False
+    print("It's a tie!")
+    return True
 
-def declare_winner(current_player):
-    print("{} wins the game".format(current_player))
+def make_move(symbol):
+    row = int(input("Choose Row: "))
+    column = int(input("Choose Column: "))
 
-def player_move(current_player, board):
-    row = int(input("Please select Row: "))
-    column = int(input("Please select Column: "))
-
-    if is_valid(row, column, board):
-        board[row][column] = current_player
+    if is_valid_move(row, column):
+        game_board[row][column] = symbol
     else:
-        print("Invalid Answer. Try Again")
-        player_move(current_player, board)
+        print("Invalid move. Try again.")
+        make_move(symbol)
 
-start_game()
+def is_valid_move(row, column):
+    if (row < 0 or row > 2) or (column < 0 or column > 2):
+        return False
+
+    if game_board[row][column] == '':
+        return True
+    return False    
+
+def start():
+    play_game()
+
+start()
