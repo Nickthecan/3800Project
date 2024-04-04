@@ -1,7 +1,26 @@
+# tictactoe.py
 import socket
+
+def socket_bind_server():
+    try:
+        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("Socket created successfully")
+    except socket.error as error:
+        print("Socket creation failed, {}".format(error))
+
+    serversocket.bind((socket.gethostname(), 8080))
+    serversocket.listen(5)
+    
+    return serversocket
+
+def close_sockets(clientsocket, serversocket):
+    if clientsocket:
+        clientsocket.close()
+    serversocket.close()
 
 def start_game():
     board = [['', '', ''],['', '', ''],['', '', '']]
+    serversocket = socket_bind_server()
 
     while True:
         print_board(board)
@@ -22,11 +41,7 @@ def start_game():
             current_player = 'O'
             player_move(current_player, board)
 
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
-            break
+    close_sockets(None, serversocket)
 
 def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
@@ -75,29 +90,5 @@ def player_move(current_player, board):
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
 
-def socket_bind_server():
-    try:
-        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("socket created successfully")
-    except socket.error as error:
-        print("socket creation failed, {}".format(error))
-
-    serversocket.bind((socket.gethostname(), 8080))
-    serversocket.listen(5)
-    
-    clientsocket, address = serversocket.accept()
-    print("connection from {} has been established".format(address))
-    clientsocket.send(bytes("Welcome to the Server", "utf-8"))
-
-    while True:
-        data = clientsocket.recv(1024)
-        if data.decode() == "close":
-            break
-        print("Received from client: {}".format(data.decode()))
-        clientsocket.sendall(data)
-
-    clientsocket.close()
-    serversocket.close()
-
-socket_bind_server()
-""" start_game() """
+if __name__ == "__main__":
+    start_game()

@@ -1,7 +1,14 @@
 import socket
 
+def close_sockets(clientsocket, serversocket):
+    if clientsocket:
+        clientsocket.close()
+    serversocket.close()
+
 def start_game():
     board = [['', '', ''],['', '', ''],['', '', '']]
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.connect((socket.gethostname(), 8080))
 
     while True:
         print_board(board)
@@ -22,11 +29,7 @@ def start_game():
             current_player = 'O'
             player_move(current_player, board)
 
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
-            break
+    close_sockets(None, serversocket)
 
 def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
@@ -75,28 +78,5 @@ def player_move(current_player, board):
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
 
-def socket_connect_client():
-    try:
-        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("socket created successfully")
-    except socket.error as error:
-        print("socket creation failed, {}".format(error))
-
-    clientsocket.connect((socket.gethostname(), 8080))
-
-    message = clientsocket.recv(1024)
-    print(message.decode("utf-8"))
-
-    while True:
-        message = input("Enter Row Number and Column Number: ")
-
-        if message == "close":
-            clientsocket.sendall(message.encode())
-            break
-
-        clientsocket.sendall(message.encode())
-    
-    clientsocket.close()
-
-socket_connect_client()
-""" start_game() """
+if __name__ == "__main__":
+    start_game()
