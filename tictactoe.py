@@ -1,4 +1,4 @@
-import socket
+import socket, json
 
 def start_game():
     board = [['', '', ''],['', '', ''],['', '', '']]

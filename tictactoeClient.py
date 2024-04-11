@@ -1,4 +1,4 @@
-import socket
+import socket, json
 
 def start_game(clientsocket):
     board = [['', '', ''],['', '', ''],['', '', '']]
@@ -71,7 +71,8 @@ def player_move(current_player, board, clientsocket):
     row_column[1] = int(input("Please select Column: "))
 
     if is_valid(row_column[0], row_column[1], board):
-        clientsocket.sendall(row_column.encode)
+        data = json.dumps({'data': row_column})
+        clientsocket.send(data.encode())
     else:
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
