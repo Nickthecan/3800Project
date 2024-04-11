@@ -1,35 +1,83 @@
 #imports
 import socket, json
 
-#method to play the game and to manipulate the board's position
-def play_game(board):
+#method to bind the client side to the server side. This starts the game
+def socket_connect_client_play_game():
+    #try block to create a server socket
+    try:
+        #create a socket binding specifying the type of socket to be created and the address family
+        #AF_INET = communicate over IPv4 networks
+        #SOCK_STREAM = type of socket to be created, creates a two-way connction-based type stream
+        #              makes sure that data is delivered in order without any errors or duplications
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("socket created successfully")
+    except socket.error as error:
+        print("socket creation failed, {}".format(error))
+
+    #connects to the server socket running on the local machine and port number
+    clientsocket.connect((socket.gethostname(), 8080))
+    #Once connected, the server will respond with "Welcome to the Server" (will remove this once finished)
+    message = clientsocket.recv(1024)
+    print(message.decode("utf-8"))
+
+    #initalize the starting position of the board
+    board = [['', '', ''],['', '', ''],['', '', '']]
     #client plays as X (player 1)
     current_player = 'X'
 
-    #print the board
-    print_board(board)
-    #make the client make a choice on where to play
-    player_move(current_player, board)
-    #check for a winner after the client makes a move
-    winner_found = check_winner(board)
+    #while the connection is secured, run a while loop to play the game
+    while True:
+        #print the board
+        print_board(board)
+        #make the client make a choice on where to play
+        player_move(current_player, board)
+        #check for a winner after the client makes a move
+        winner_found = check_winner(board)
 
-    #conditional statement to see what to return
-    #if client wins, declare client as winner and return a "close" statement to tell the socket to close
-    if winner_found:
-        print_board(board)
-        declare_winner(current_player)
-        return "close"
-    #if the board is full, declare a tie and return a "close" statement to tell the socket to close
-    elif check_if_full(board):
-        print_board(board)
-        print("It is a tie")
-        return "close"
-    #otherwise print the board and return the updated board
-    else:
-        print_board(board)
-        print("Waiting for Server's Move...")
-        return board
-#end play_game
+        #conditional statement to see what to return
+        #if client wins, declare client as winner and return a "close" statement to tell the socket to close
+        if winner_found:
+            print_board(board)
+            declare_winner(current_player)
+            client_data = json.dumps({"board": board})
+            clientsocket.send(client_data.encode())
+            break
+        #if the board is full, declare a tie and return a "close" statement to tell the socket to close
+        elif check_if_full(board):
+            print_board(board)
+            print("It is a tie")
+            client_data = json.dumps({"board": board})
+            clientsocket.send(client_data.encode())
+            break
+        #otherwise print the board and send to the server
+        else:
+            print_board(board)
+            print("Waiting for Server's Move...")
+            #send the updated response to the server
+            client_data = json.dumps({"board": board})
+            clientsocket.send(client_data.encode())
+
+        #listen for the server to send back a new board or close
+        data_from_server = clientsocket.recv(1024)
+        #load board from json module
+        data = json.loads(data_from_server.decode())
+        #store into a 2D array variable
+        board = data.get("board")
+
+        #check to see if the server won in order to display it to the client, otherwise continue with the game
+        winner_found = check_winner(board)
+        if winner_found:
+            print_board(board)
+            print("You lost! Player O won")
+            break
+        elif check_if_full(board):
+            print_board(board)
+            print("It is a tie")
+            break
+
+    #Once the while loop breaks, close the connection for the client
+    clientsocket.close()
+#end socket_connect_client
 
 #method to print the board to the server
 def print_board(board):
@@ -93,51 +141,5 @@ def declare_winner(current_player):
     print("{} wins the game".format(current_player))
 #end declare_winner
 
-#method to bind the client side to the server side. This starts the program
-def socket_connect_client():
-    #try block to create a server socket
-    try:
-        #create a socket binding specifying the type of socket to be created and the address family
-        #AF_INET = communicate over IPv4 networks
-        #SOCK_STREAM = type of socket to be created, creates a two-way connction-based type stream
-        #              makes sure that data is delivered in order without any errors or duplications
-        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("socket created successfully")
-    except socket.error as error:
-        print("socket creation failed, {}".format(error))
-
-    #connects to the server socket running on the local machine and port number
-    clientsocket.connect((socket.gethostname(), 8080))
-
-    #Once connected, the server will respond with "Welcome to the Server" (will remove this once finished)
-    message = clientsocket.recv(1024)
-    print(message.decode("utf-8"))
-
-    #initalize the starting position of the board
-    board = [['', '', ''],['', '', ''],['', '', '']]
-
-    #while the connection is secured, run a while loop to play the game
-    while True:
-        #since the client goes first, we run the game first, this will return an updated board or "close"
-        client_board = play_game(board)
-
-        #send the updated response to the server
-        client_data = json.dumps({"board": client_board})
-        clientsocket.send(client_data.encode())
-
-        #listen for the server to send back a new board or close
-        data_from_server = clientsocket.recv(1024)
-        #conditional statement to see if the data from the server is "close" or a board position
-        if data_from_server.decode() == "close":
-            break
-        #if it is a board position, load from json module
-        data = json.loads(data_from_server.decode())
-        #store into a 2D array variable
-        board = data.get("board")
-    
-    #Once the while loop breaks, close the connection for the client
-    clientsocket.close()
-#end socket_connect_client
-
 #start socket_connect_client
-socket_connect_client()
+socket_connect_client_play_game()
