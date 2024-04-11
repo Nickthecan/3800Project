@@ -1,12 +1,12 @@
 import socket
 
-def start_game():
+def start_game(clientsocket):
     board = [['', '', ''],['', '', ''],['', '', '']]
 
     while True:
         print_board(board)
         current_player = 'X'
-        player_move(current_player, board)
+        player_move(current_player, board, clientsocket)
 
         winner_found, winning_symbol = check_winner(board)
         if winner_found:
@@ -65,12 +65,13 @@ def check_winner(board):
 def declare_winner(current_player):
     print("{} wins the game".format(current_player))
 
-def player_move(current_player, board):
-    row = int(input("Please select Row: "))
-    column = int(input("Please select Column: "))
+def player_move(current_player, board, clientsocket):
+    row_column = [0, 0]
+    row_column[0] = int(input("Please select Row: "))
+    row_column[1] = int(input("Please select Column: "))
 
-    if is_valid(row, column, board):
-        board[row][column] = current_player
+    if is_valid(row_column[0], row_column[1], board):
+        clientsocket.sendall(row_column.encode)
     else:
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
@@ -88,7 +89,8 @@ def socket_connect_client():
     print(message.decode("utf-8"))
 
     while True:
-        message = input("Enter Row Number and Column Number: ")
+        start_game(clientsocket)
+        #message = input("Enter Row Number and Column Number: ")
 
         if message == "close":
             clientsocket.sendall(message.encode())
