@@ -1,25 +1,22 @@
 import socket, json
 
-def start_game():
+def start_game(clientsocket, board):
     current_player = 'O'
-    board = [['', '', ''],['', '', ''],['', '', '']]
 
-    while True:
+    print_board(board)
+    player_move(current_player, board)
+
+    winner_found, winning_symbol = check_winner(board)
+
+    if winner_found:
         print_board(board)
-        player_move(current_player, board)
-
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
-            break
-        elif check_if_full(board):
-            print_board(board)
-            print("It is a tie")
-            break
-        else:
-            #wait for client
-            return
+        declare_winner(winning_symbol)
+    elif check_if_full(board):
+        print_board(board)
+        print("It is a tie")
+    else:
+        #return the board
+        return
 
 def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
@@ -83,11 +80,14 @@ def socket_bind_server():
     clientsocket.send(bytes("Welcome to the Server", "utf-8"))
 
     while True:
-        data = clientsocket.recv(1024)
-        if data.decode() == "close":
+        #will receive the board message from the client, then it can run the start_game method
+        message_from_client = clientsocket.recv(1024)
+        if message_from_client.decode() == "close":
             break
-        print("Received from client: {}".format(data.decode()))
-        clientsocket.sendall(data)
+        data = json.loads(data.decode())
+        board = data.get("board")
+
+        start_game(clientsocket, board)
 
     clientsocket.close()
     serversocket.close()

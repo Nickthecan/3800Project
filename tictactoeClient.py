@@ -1,25 +1,24 @@
 import socket, json
 
-def start_game(clientsocket):
+def start_game(clientsocket, board):
     current_player = 'X'
-    board = [['', '', ''],['', '', ''],['', '', '']]
 
-    while True:
+    print_board(board)
+    player_move(current_player, board, clientsocket)
+
+    winner_found, winning_symbol = check_winner(board)
+
+    if winner_found:
         print_board(board)
-        player_move(current_player, board, clientsocket)
-
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
-            break
-        elif check_if_full(board):
-            print_board(board)
-            print("It is a tie")
-            break
-        else:
-            #wait for the server
-            return
+        declare_winner(winning_symbol)
+    elif check_if_full(board):
+        print_board(board)
+        print("It is a tie")
+    else:
+        #remove this later
+        data = json.dumps({"board": board})
+        clientsocket.send(data.encode())
+        #remove the board
 
 def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
@@ -59,13 +58,11 @@ def declare_winner(current_player):
     print("{} wins the game".format(current_player))
 
 def player_move(current_player, board, clientsocket):
-    row_column = [0, 0]
-    row_column[0] = int(input("Please select Row: "))
-    row_column[1] = int(input("Please select Column: "))
+    row = int(input("Please select Row: "))
+    column = int(input("Please select Column: "))
 
-    if is_valid(row_column[0], row_column[1], board):
-        data = json.dumps({'data': row_column})
-        clientsocket.send(data.encode())
+    if is_valid(row, column, board):
+        board[row][column] = current_player
     else:
         print("Invalid Answer. Try Again")
         player_move(current_player, board)
@@ -82,13 +79,18 @@ def socket_connect_client():
     message = clientsocket.recv(1024)
     print(message.decode("utf-8"))
 
+    board = [['', '', ''],['', '', ''],['', '', '']]
+
     while True:
-        start_game(clientsocket)
+        #need to turn this into a function that returns an array and then pass it through
+        start_game(clientsocket, board)
         #message = input("Enter Row Number and Column Number: ")
 
-        if message == "close":
-            clientsocket.sendall(message.encode())
+        message_from_server = clientsocket.recv(1024)
+        if message_from_server.decode() == "close":
             break
+
+
 
         clientsocket.sendall(message.encode())
     
