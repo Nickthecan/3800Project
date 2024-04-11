@@ -1,11 +1,11 @@
 import socket, json
 
 def start_game():
+    current_player = 'O'
     board = [['', '', ''],['', '', ''],['', '', '']]
 
     while True:
         print_board(board)
-        current_player = 'X'
         player_move(current_player, board)
 
         winner_found, winning_symbol = check_winner(board)
@@ -18,15 +18,8 @@ def start_game():
             print("It is a tie")
             break
         else:
-            print_board(board)
-            current_player = 'O'
-            player_move(current_player, board)
-
-        winner_found, winning_symbol = check_winner(board)
-        if winner_found:
-            print_board(board)
-            declare_winner(winning_symbol)
-            break
+            #wait for client
+            return
 
 def print_board(board):
     print("  {}  |  {}  |  {}  ".format(board[0][0], board[0][1], board[0][2]))
